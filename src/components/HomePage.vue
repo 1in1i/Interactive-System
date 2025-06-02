@@ -33,7 +33,7 @@ export default {
     return {
       games: [
         { name: 'Copy Rotation', route: "RotationGame", maxStars: 3 },
-        { name: 'Repeat Lights', maxStars: 3 },
+        { name: 'Replicate Number', route:"ReplicateNumber", maxStars: 3 },
         { name: 'Count Colors', maxStars: 4 },
         { name: 'Match Notes', maxStars: 3 },
         { name: 'Echo Sounds', maxStars: 3 }
@@ -118,7 +118,7 @@ export default {
   transform: translateY(-2px);
 }
 .game-name {
-  font-size: 1.3rem;
+  font-size: 1rem;
   font-weight: 600;
   color: #34495e;
   z-index: 2;

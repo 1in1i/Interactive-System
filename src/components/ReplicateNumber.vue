@@ -1,6 +1,6 @@
 <template>
-  <div class="rotation-game">
-      <h1 class="title">Copy Rotation</h1>
+  <div class="replicate-number">
+      <h1 class="title">Replicate Number</h1>
        <div class="star-badge">
          <span
            v-for="n in maxStars"
@@ -21,13 +21,36 @@
           <p>Time: 00:00</p>
         </div>
       </div>
+    
+      <div class="dial">
+        <el-row>
+          <el-button class="number" @click="appendToSequence('1')">1</el-button>
+          <el-button class="number" @click="appendToSequence('2')">2</el-button>
+          <el-button class="number" @click="appendToSequence('3')">3</el-button>
+        </el-row>
+        <el-row>
+          <el-button class="number" @click="appendToSequence('4')">4</el-button>
+          <el-button class="number" @click="appendToSequence('5')">5</el-button>
+          <el-button class="number" @click="appendToSequence('6')">6</el-button>
+        </el-row>
+        <el-row>
+          <el-button class="number" @click="appendToSequence('7')">7</el-button>
+          <el-button class="number" @click="appendToSequence('8')">8</el-button>
+          <el-button class="number" @click="appendToSequence('9')">9</el-button>
+        </el-row>
+        <el-row>
+          <el-button class="number semi-yellow" @click="appendToSequence('*')">*</el-button>
+          <el-button class="number" @click="appendToSequence('0')">0</el-button>
+          <el-button class="number semi-yellow" @click="appendToSequence('#')">#</el-button>
+        </el-row>
+      </div>
 
       <div class="buttons">
         <el-button class="button"
         :type="isRunning ? 'danger' : 'success'"
         round
         @click="controlGame"
-        :disabled="!isRunning && currentStars >= maxStars"        
+        :disabled="!isRunning && currentStars >= maxStars"
       >
         {{ isRunning ? 'Abort' : 'Start' }}
       </el-button>
@@ -41,20 +64,32 @@ export default {
       isRunning: false,
       currentStars: 1,
       maxStars: 3,
-      gameName: 'Copy Rotation',
-      serialPort: null
+      gameName: 'Replicate Number',
+      serialPort: null,
+      inputSequence: '',
+      // isInputting: false
     }
   },
   methods: {
+    appendToSequence(char){
+      this.inputSequence += char;
+    },
     async controlGame() {
       if(!this.isRunning){
+        this.inputSequence = '';
+        // this.isInputting = true;
         if (this.currentStars < this.maxStars) {
         this.currentStars += 1;
         sessionStorage.setItem(`stars-${this.gameName}`, this.currentStars);
       }
-      await this.sendLevelToArduino(this.currentStars);
+      // await this.sendToArduino(this.currentStars);
       }
       else{
+        if(!this.serialPort){
+          await this.sendToArduino({
+            level: this.currentStars,
+            sequence: this.inputSequence});
+        }
         if (this.serialPort) {
           await this.serialPort.close();
           this.serialPort = null;
@@ -62,14 +97,17 @@ export default {
       }
       this.isRunning = !this.isRunning
     },
-    async sendLevelToArduino(starLevel) {
+    async sendToArduino({level, sequence}) {
       try {
+        const jsonData = JSON.stringify({level, sequence});
+        const dataString = jsonData + '\n';
+        console.log(dataString);
         this.serialPort = await navigator.serial.requestPort();
         await this.serialPort.open({ baudRate: 9600 });
         const writer = this.serialPort.writable.getWriter();
-        await writer.write(new TextEncoder().encode(starLevel.toString()));
+        await writer.write(new TextEncoder().encode(dataString));
         writer.releaseLock();
-        console.log(`Serial communication success: ${starLevel}`);
+        console.log(`Serial communication success: ${dataString}`);
       } catch (error) {
         console.error("Serial communication failed!:", error);
       }
@@ -81,8 +119,8 @@ export default {
   }
 }
 </script>
-<style>
-.rotation-game {
+<style scoped>
+.replicate-number {
   display: grid;
   background: linear-gradient(to bottom, #fdfbfb, #ebedee);
   grid-template-columns: 1fr 250px;
@@ -122,7 +160,16 @@ export default {
 
 .buttons {
   grid-column: 1 / 3;
-  grid-row: 3 / 5;
+  grid-row:  3 / 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 2rem;
+}
+
+.dial {
+  grid-column: 1 / 3;
+  grid-row:  2 / 5 ;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -153,5 +200,18 @@ export default {
 .star.filled {
   color: #FFD700; 
   text-shadow: 0 0 4px rgba(255, 215, 0, 0.5);
+}
+
+.number {
+  margin-right: -10px;
+  margin-bottom: 2px;
+  width: 50px;
+  height: 50px;
+  font-size: 18px;
+  padding: 20px 20px;
+  text-align: center;
+}
+.semi-yellow {
+  background-color: rgba(255, 255, 255, 0.1);
 }
 </style>
