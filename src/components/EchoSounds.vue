@@ -1,6 +1,6 @@
 <template>
-  <div class="replicate-number">
-      <h1 class="title">Replicate Numbers</h1>
+  <div class="echo-sounds">
+      <h1 class="title">Echo Sounds</h1>
        <div class="sidebar">
         <div class="instructions">
           <h2 class="instruction">Instructions</h2>
@@ -9,30 +9,18 @@
         <div class="records">
           <h2 class="record">Records</h2>
           <p>Mistakes: 0</p>
-          <p>Time: 00:00</p>
+          <p>Time: 01:00</p>
         </div>
       </div>
-    
-      <div class="dial">
+        <div class="colorButtons">
         <el-row>
-          <el-button class="number" @click="appendToSequence('1')">1</el-button>
-          <el-button class="number" @click="appendToSequence('2')">2</el-button>
-          <el-button class="number" @click="appendToSequence('3')">3</el-button>
-        </el-row>
-        <el-row>
-          <el-button class="number" @click="appendToSequence('4')">4</el-button>
-          <el-button class="number" @click="appendToSequence('5')">5</el-button>
-          <el-button class="number" @click="appendToSequence('6')">6</el-button>
-        </el-row>
-        <el-row>
-          <el-button class="number" @click="appendToSequence('7')">7</el-button>
-          <el-button class="number" @click="appendToSequence('8')">8</el-button>
-          <el-button class="number" @click="appendToSequence('9')">9</el-button>
-        </el-row>
-        <el-row>
-          <el-button class="number semi-yellow" @click="appendToSequence('*')">*</el-button>
-          <el-button class="number" @click="appendToSequence('0')">0</el-button>
-          <el-button class="number semi-yellow" @click="appendToSequence('#')">#</el-button>
+          <el-button class="colorButton" @click="appendToSequence('1'); playNote('do')" >Do</el-button>
+          <el-button class="colorButton" @click="appendToSequence('2'); playNote('re')">Re</el-button>
+          <el-button class="colorButton" @click="appendToSequence('3'); playNote('mi')">Mi</el-button>
+          <el-button class="colorButton" @click="appendToSequence('4'); playNote('fa')">Fa</el-button>
+          <el-button class="colorButton" @click="appendToSequence('5'); playNote('sol')">Sol</el-button>
+          <el-button class="colorButton" @click="appendToSequence('6'); playNote('la')">La</el-button>
+          <el-button class="colorButton" @click="appendToSequence('7'); playNote('si')">Si</el-button>
         </el-row>
       </div>
 
@@ -40,7 +28,7 @@
         <el-button class="button"
         :type="isRunning ? 'danger' : 'success'"
         round
-        @click="controlGame"      >
+        @click="controlGame">
         {{ isRunning ? 'Abort' : 'Start' }}
       </el-button>
       </div>
@@ -51,8 +39,9 @@ export default {
   data() {
     return {
       isRunning: false,
-      // currentStars: 1,
-      // maxStars: 3,
+      input:'',
+    //   currentStars: 1,
+    //   maxStars: 3,
       gameName: 'Replicate Number',
       serialPort: null,
       inputSequence: '',
@@ -60,6 +49,10 @@ export default {
     }
   },
   methods: {
+    playNote(note) {
+     const audio = new Audio(`../../public/sound/${note}.mp3`);
+      audio.play().catch(e => console.error("erroe:", e));
+    },
     appendToSequence(char){
       this.inputSequence += char;
     },
@@ -97,16 +90,16 @@ export default {
 
   },
   created() {
-  // this.currentStars = parseInt(sessionStorage.getItem(`stars-${this.gameName}`)) || 0;
+//   this.currentStars = parseInt(sessionStorage.getItem(`stars-${this.gameName}`)) || 0;
   }
 }
 </script>
 <style scoped>
-.replicate-number {
+.echo-sounds {
   display: grid;
   background: linear-gradient(to bottom, #fdfbfb, #ebedee);
   grid-template-columns: 1fr 250px;
-  grid-template-rows: auto auto auto auto auto;
+  grid-template-rows: auto auto auto auto auto auto;
   gap: 1rem;
   padding: 1rem;
   min-height: 100vh;
@@ -142,21 +135,20 @@ export default {
 
 .buttons {
   grid-column: 1 / 3;
-  grid-row:  3 / 5;
+  grid-row:  4 / 5;
   display: flex;
   flex-direction: column;
   align-items: center;
   padding-top: 2rem;
 }
 
-.dial {
+.colorButtons {
   grid-column: 1 / 3;
-  grid-row:  2 / 5 ;
+  grid-row:  2 / 6 ;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding-top: 1.5rem;
-  padding-bottom: 1.5rem;
+  padding-top: 4rem;
 }
 
 .button{
@@ -165,18 +157,14 @@ export default {
   font-size: 1.6rem;
 }
 
-
-
-.number {
+.colorButton {
   margin-right: -12px;
-  margin-bottom: 0px;
+  margin-bottom: 2px;
   width: 60px;
-  height: 60px;
-  font-size: 18px;
+  height: 130px;
+  font-size: 16px;
   padding: 20px 20px;
   text-align: center;
 }
-.semi-yellow {
-  background-color: rgba(255, 255, 255, 0.1);
-}
+
 </style>

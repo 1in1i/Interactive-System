@@ -1,7 +1,16 @@
 <template>
-  <div class="replicate-number">
-      <h1 class="title">Replicate Numbers</h1>
-       <div class="sidebar">
+  <div class="replicate-color">
+      <h1 class="title">Replicate Colors</h1>
+       <!-- <div class="star-badge">
+         <span
+           v-for="n in maxStars"
+           :key="n"
+           class="star"
+           :class="{ filled: n <= currentStars }"
+         >★</span>
+        </div> -->
+
+      <div class="sidebar">
         <div class="instructions">
           <h2 class="instruction">Instructions</h2>
           <p>Instructions</p>
@@ -13,34 +22,22 @@
         </div>
       </div>
     
-      <div class="dial">
+      <div class="colorButtons">
         <el-row>
-          <el-button class="number" @click="appendToSequence('1')">1</el-button>
-          <el-button class="number" @click="appendToSequence('2')">2</el-button>
-          <el-button class="number" @click="appendToSequence('3')">3</el-button>
+          <el-button class="colorButton" @click="appendToSequence('1')" type="primary" circle></el-button>
+          <el-button class="colorButton" @click="appendToSequence('2')" type="success" circle></el-button>
+          <el-button class="colorButton" @click="appendToSequence('3')" type="warning" circle></el-button>
+          <el-button class="colorButton" @click="appendToSequence('4')" type="danger" circle></el-button>
+          <el-button class="colorButton" @click="appendToSequence('5')" circle></el-button>
         </el-row>
-        <el-row>
-          <el-button class="number" @click="appendToSequence('4')">4</el-button>
-          <el-button class="number" @click="appendToSequence('5')">5</el-button>
-          <el-button class="number" @click="appendToSequence('6')">6</el-button>
-        </el-row>
-        <el-row>
-          <el-button class="number" @click="appendToSequence('7')">7</el-button>
-          <el-button class="number" @click="appendToSequence('8')">8</el-button>
-          <el-button class="number" @click="appendToSequence('9')">9</el-button>
-        </el-row>
-        <el-row>
-          <el-button class="number semi-yellow" @click="appendToSequence('*')">*</el-button>
-          <el-button class="number" @click="appendToSequence('0')">0</el-button>
-          <el-button class="number semi-yellow" @click="appendToSequence('#')">#</el-button>
-        </el-row>
+      
       </div>
 
       <div class="buttons">
         <el-button class="button"
         :type="isRunning ? 'danger' : 'success'"
         round
-        @click="controlGame"      >
+        @click="controlGame">
         {{ isRunning ? 'Abort' : 'Start' }}
       </el-button>
       </div>
@@ -51,8 +48,8 @@ export default {
   data() {
     return {
       isRunning: false,
-      // currentStars: 1,
-      // maxStars: 3,
+    //   currentStars: 1,
+    //   maxStars: 3,
       gameName: 'Replicate Number',
       serialPort: null,
       inputSequence: '',
@@ -66,6 +63,12 @@ export default {
     async controlGame() {
       if(!this.isRunning){
         this.inputSequence = '';
+        // this.isInputting = true;
+    //     if (this.currentStars < this.maxStars) {
+    //     this.currentStars += 1;
+    //     sessionStorage.setItem(`stars-${this.gameName}`, this.currentStars);
+    //   }
+      // await this.sendToArduino(this.currentStars);
       }
       else{
         if(!this.serialPort){
@@ -97,12 +100,12 @@ export default {
 
   },
   created() {
-  // this.currentStars = parseInt(sessionStorage.getItem(`stars-${this.gameName}`)) || 0;
+//   this.currentStars = parseInt(sessionStorage.getItem(`stars-${this.gameName}`)) || 0;
   }
 }
 </script>
 <style scoped>
-.replicate-number {
+.replicate-color {
   display: grid;
   background: linear-gradient(to bottom, #fdfbfb, #ebedee);
   grid-template-columns: 1fr 250px;
@@ -149,14 +152,13 @@ export default {
   padding-top: 2rem;
 }
 
-.dial {
+.colorButtons {
   grid-column: 1 / 3;
   grid-row:  2 / 5 ;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding-top: 1.5rem;
-  padding-bottom: 1.5rem;
+  padding-top: 4rem;
 }
 
 .button{
@@ -165,18 +167,34 @@ export default {
   font-size: 1.6rem;
 }
 
+.star-badge {
+  grid-column: 1 / 2;
+  grid-row: 2 / 5;
+  display: flex;
+  left: 12px;
+  bottom: 12px;
+  display: flex;
+  gap: 3px;
+}
 
+.star {
+  font-size: 1.2rem;
+  color: #d0d0d0; 
+}
 
-.number {
-  margin-right: -12px;
-  margin-bottom: 0px;
-  width: 60px;
-  height: 60px;
+.star.filled {
+  color: #FFD700; 
+  text-shadow: 0 0 4px rgba(255, 215, 0, 0.5);
+}
+
+.colorButton {
+  margin-right: 10px;
+  margin-bottom: 2px;
+  width: 50px;
+  height: 50px;
   font-size: 18px;
   padding: 20px 20px;
   text-align: center;
 }
-.semi-yellow {
-  background-color: rgba(255, 255, 255, 0.1);
-}
+
 </style>

@@ -8,14 +8,14 @@
           :style="{ background: buttonColors[index].bg}" 
           @click="goToGame(game.route)">
         <span class="game-name">{{ game.name }}</span>
-        <div class="star-badge">
+        <!-- <div class="star-badge">
           <span
           v-for="n in game.maxStars"
           :key="n"
           class="star"
           :class="{ filled: n <= getCurrentStars(game.name) }"
          >★</span>
-        </div>
+        </div> -->
       </button>
     </div>
     <div class="video-wrapper">
@@ -33,10 +33,10 @@ export default {
     return {
       games: [
         { name: 'Copy Rotation', route: "RotationGame", maxStars: 3 },
-        { name: 'Replicate Number', route:"ReplicateNumber", maxStars: 3 },
-        { name: 'Count Colors', maxStars: 4 },
-        { name: 'Match Notes', maxStars: 3 },
-        { name: 'Echo Sounds', maxStars: 3 }
+        { name: 'Replicate Numbers', route:"ReplicateNumber", maxStars: 3 },
+        { name: 'Replicate Colors', route:"ReplicateColor", maxStars: 4 },
+        { name: 'Count Notes', route:"CountNotes", maxStars: 3 },
+        { name: 'Echo Sounds', route:"EchoSounds", maxStars: 3 }
       ],
       buttonColors: [
         { bg: '#FFB6B9'},
@@ -51,9 +51,9 @@ export default {
     goToGame(route){
       this.$router.push({name: route})
     },
-    getCurrentStars(gameName) {
-    return parseInt(sessionStorage.getItem(`stars-${gameName}`)) || 0;
-    }
+    // getCurrentStars(gameName) {
+    // return parseInt(sessionStorage.getItem(`stars-${gameName}`)) || 0;
+    // }
   }
 
 }

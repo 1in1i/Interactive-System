@@ -1,14 +1,14 @@
 <template>
   <div class="rotation-game">
       <h1 class="title">Copy Rotation</h1>
-       <div class="star-badge">
+       <!-- <div class="star-badge">
          <span
            v-for="n in maxStars"
            :key="n"
            class="star"
            :class="{ filled: n <= currentStars }"
          >★</span>
-        </div>
+        </div> -->
 
       <div class="sidebar">
         <div class="instructions">
@@ -39,8 +39,8 @@ export default {
   data() {
     return {
       isRunning: false,
-      currentStars: 1,
-      maxStars: 3,
+      // currentStars: 1,
+      // maxStars: 3,
       gameName: 'Copy Rotation',
       serialPort: null
     }
@@ -48,11 +48,11 @@ export default {
   methods: {
     async controlGame() {
       if(!this.isRunning){
-        if (this.currentStars < this.maxStars) {
-        this.currentStars += 1;
-        sessionStorage.setItem(`stars-${this.gameName}`, this.currentStars);
-      }
-      await this.sendLevelToArduino(this.currentStars);
+      //   if (this.currentStars < this.maxStars) {
+      //   this.currentStars += 1;
+      //   sessionStorage.setItem(`stars-${this.gameName}`, this.currentStars);
+      // }
+      // await this.sendLevelToArduino(this.currentStars);
       }
       else{
         if (this.serialPort) {
@@ -77,7 +77,7 @@ export default {
 
   },
   created() {
-  this.currentStars = parseInt(sessionStorage.getItem(`stars-${this.gameName}`)) || 0;
+  // this.currentStars = parseInt(sessionStorage.getItem(`stars-${this.gameName}`)) || 0;
   }
 }
 </script>
