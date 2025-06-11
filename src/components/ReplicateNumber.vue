@@ -4,9 +4,9 @@
        <div class="game-result">
           <h2 class="instruction">Game Answer</h2>
           <p>Correct Answer:</p>
-          <p>2 3</p>
+          <p> {{ currentResult.correctAnswer }}</p>
           <p>Your Answer:</p>
-          <p>2</p>
+          <p>{{ currentResult.userAnswer }}</p>
         </div>
 
        <div class="sidebar">
@@ -42,9 +42,12 @@
           <el-button class="number" @click="appendToSequence('0')">0</el-button>
           <el-button class="number semi-yellow" @click="appendToSequence('#')">#</el-button>
         </el-row>
+        <el-row style="margin-top: 1rem;">
+            <el-button type="primary " @click="submitAnswer">Submit</el-button>
+        </el-row>
       </div>
-
-      <div class="buttons">
+      
+      <div class="buttons">    
         <el-button class="button"
         :type="isRunning ? 'danger' : 'success'"
         round
@@ -64,7 +67,8 @@ export default {
       gameName: 'Replicate Number',
       serialPort: null,
       inputSequence: '',
-      // isInputting: false
+      currentResult: { correctAnswer:'', correctAnswer: '', isCorrect:''},
+      mock: true,
     }
   },
   methods: {
@@ -74,12 +78,11 @@ export default {
     async controlGame() {
       if(!this.isRunning){
         this.inputSequence = '';
+        this.currentResult.correctAnswer='';
+        this.currentResult.userAnswer = '';
+        await this.openSerialPort();
       }
       else{
-        if(!this.serialPort){
-          await this.sendToArduino({
-            sequence: this.inputSequence});
-        }
         if (this.serialPort) {
           await this.serialPort.close();
           this.serialPort = null;
@@ -87,9 +90,22 @@ export default {
       }
       this.isRunning = !this.isRunning
     },
-    async sendToArduino({level, sequence}) {
+    async openSerialPort(){
+    try {
+      this.serialPort = await navigator.serial.requestPort();
+      await this.serialPort.open({ baudRate: 9600 });
+      console.log("Open Serial Port successfully!");
+    } catch (error) {
+      console.error("Failed to open Serial Port!:", error);
+    }
+    },
+    async sendToArduino({sequence}) {
       try {
-        const jsonData = JSON.stringify({level, sequence});
+      //    if (!this.serialPort) {
+      //   console.error("Serial port is not open and data cannot be sent!");
+      //   return;
+      // }
+        const jsonData = JSON.stringify({sequence});
         const dataString = jsonData + '\n';
         console.log(dataString);
         this.serialPort = await navigator.serial.requestPort();
@@ -102,6 +118,60 @@ export default {
         console.error("Serial communication failed!:", error);
       }
     },
+    async submitAnswer() {
+    if (!this.isRunning) {
+      alert("Please Start Game!");
+      return;
+    }
+    if (!this.inputSequence) {
+      alert("Submit before Inputting!");
+      return;
+    }
+    const sequence = this.inputSequence;
+    if(!this.mock)
+    {
+        await this.sendToArduino({ sequence });
+    }
+    const result = await this.readFromArduino();
+    this.currentResult.userAnswer = result.userAnswer;
+    this.currentResult.correctAnswer = result.correctAnswer;
+    if (!result.isCorrect) {
+      this.isRunning = false;
+      alert("Game Over!");
+      await this.serialPort.close();
+      this.serialPort = null;
+    } else{
+          this.inputSequence = '';
+    }
+  },
+  async readFromArduino() {
+     if (this.mock) {
+      await new Promise(resolve => setTimeout(resolve, 500));
+      return {
+        correctAnswer: '2',
+        userAnswer: this.inputSequence,
+        isCorrect: this.inputSequence === '2'
+      };
+    }
+    if (!this.serialPort) return null;
+    try {
+      const decoder = new TextDecoderStream();
+      const readableStreamClosed = this.serialPort.readable.pipeTo(decoder.writable);
+      const reader = decoder.readable.getReader();
+  
+      const { value, done } = await reader.read(); 
+      reader.releaseLock();
+  
+      if (value) {
+        const result = JSON.parse(value.trim());
+        return result;
+      }
+    } catch (err) {
+      console.error("Failed to read from Arduino:", err);
+    }
+  
+    return null;
+}
 
   },
   created() {
