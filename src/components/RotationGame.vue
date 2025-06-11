@@ -9,6 +9,14 @@
            :class="{ filled: n <= currentStars }"
          >★</span>
         </div> -->
+                
+        <div class="game-result">
+          <h2 class="instruction">Game Answer</h2>
+          <p>Correct Answer:</p>
+          <p>20°</p>
+          <p>Your Answer:</p>
+          <p>20°</p>
+        </div>
 
       <div class="sidebar">
         <div class="instructions">
@@ -135,14 +143,18 @@ export default {
   font-size: 1.6rem;
 }
 
-.star-badge {
+.game-result {
   grid-column: 1 / 2;
   grid-row: 2 / 5;
   display: flex;
-  left: 12px;
-  bottom: 12px;
-  display: flex;
-  gap: 3px;
+  flex-direction: column;
+  gap: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  width: 180px;
+  height: 230px;
+  padding: 1rem;
+
 }
 
 .star {

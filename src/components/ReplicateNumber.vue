@@ -1,6 +1,14 @@
 <template>
   <div class="replicate-number">
       <h1 class="title">Replicate Numbers</h1>
+       <div class="game-result">
+          <h2 class="instruction">Game Answer</h2>
+          <p>Correct Answer:</p>
+          <p>2 3</p>
+          <p>Your Answer:</p>
+          <p>2</p>
+        </div>
+
        <div class="sidebar">
         <div class="instructions">
           <h2 class="instruction">Instructions</h2>
@@ -178,5 +186,18 @@ export default {
 }
 .semi-yellow {
   background-color: rgba(255, 255, 255, 0.1);
+}
+.game-result {
+  grid-column: 1 / 2;
+  grid-row: 2 / 5;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  width: 260px;
+  min-height: 280px;
+  padding: 1rem;
+
 }
 </style>
