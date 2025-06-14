@@ -1,14 +1,12 @@
 <template>
   <div class="replicate-number">
       <h1 class="title">Replicate Numbers</h1>
-       <div class="game-result">
-          <h2 class="instruction">Game Answer</h2>
-          <p>Correct Answer:</p>
-          <p> {{ currentResult.correctAnswer }}</p>
-          <p>Your Answer:</p>
-          <p>{{ currentResult.userAnswer }}</p>
+       <div class="lives">
+         <img v-for="(life, index) in totalLives" 
+         :key="index"
+         :src="index < (3 - errorCount) ? heartIcon : brokenheartIcon"
+         class="heart">
         </div>
-
        <div class="sidebar">
         <div class="instructions">
           <h2 class="instruction">Instructions</h2>
@@ -17,7 +15,7 @@
         <div class="records">
           <h2 class="record">Records</h2>
           <p>Mistakes: 0</p>
-          <p>Time: 00:00</p>
+          <p>Time: {{ elapsedSeconds === null ? '00:00' : formattedTime }}</p>
         </div>
       </div>
     
@@ -51,72 +49,89 @@
         <el-button class="button"
         :type="isRunning ? 'danger' : 'success'"
         round
-        @click="controlGame"      >
+        @click="isRunning? abortGame() : startGame()"        
+      >
         {{ isRunning ? 'Abort' : 'Start' }}
       </el-button>
       </div>
   </div>
 </template>
 <script>
+import { HubConnectionBuilder, LogLevel } from '@microsoft/signalr'
 export default {
   data() {
     return {
       isRunning: false,
+      totalLives : 3,
+      heartIcon : '../public/icon/heart1.png',
+      brokenheartIcon: '../public/icon/heart2.png',
       // currentStars: 1,
       // maxStars: 3,
       gameName: 'Replicate Number',
-      serialPort: null,
-      inputSequence: '',
-      currentResult: { correctAnswer:'', correctAnswer: '', isCorrect:''},
-      mock: true,
+      errorCount: 0,
+      correct: null,
+      elapsedSeconds: 0,
+      timer: null,
+    }
+  },
+  computed: {
+    formattedTime() {
+      const mins = Math.floor(this.elapsedSeconds / 60)
+      const secs = this.elapsedSeconds % 60
+      return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
     }
   },
   methods: {
     appendToSequence(char){
       this.inputSequence += char;
     },
-    async controlGame() {
-      if(!this.isRunning){
-        this.inputSequence = '';
-        this.currentResult.correctAnswer='';
-        this.currentResult.userAnswer = '';
-        await this.openSerialPort();
-      }
-      else{
-        if (this.serialPort) {
-          await this.serialPort.close();
-          this.serialPort = null;
-        }
-      }
-      this.isRunning = !this.isRunning
-    },
-    async openSerialPort(){
-    try {
-      this.serialPort = await navigator.serial.requestPort();
-      await this.serialPort.open({ baudRate: 9600 });
-      console.log("Open Serial Port successfully!");
-    } catch (error) {
-      console.error("Failed to open Serial Port!:", error);
+    async startGame(){
+    this.elapsedSeconds = null;
+    this.isRunning = true;
+    this.errorCount = 0;
+    this.correct = null;
+    this.timer = setInterval(() => {
+        this.elapsedSeconds++
+      }, 1000)
+    try{
+      await this.$signalR.invoke('startGame');//startGame
+      console.log("successful connection.")
+    }catch (err){
+      console.log("failed connection.")
     }
-    },
+   },
+   async abortGame(){
+    this.isRunning = false;
+     if (this.timer) {
+        clearInterval(this.timer)
+        this.timer = null
+      };
+    try{
+      await this.$signalR.invoke("abortGame");//abortGame
+    }catch(err){
+      console.log("failed connection.")
+    }
+   },
+   handleDataUpdated(status, mistakes){
+    this.errorCount = mistakes;
+    this.status = status;
+    if(this.errorCount >= 3){
+      this.isRunning = false;
+      alert("GAME OVER!");
+      this.abortGame();
+    }
+   },
     async sendToArduino({sequence}) {
       try {
-      //    if (!this.serialPort) {
-      //   console.error("Serial port is not open and data cannot be sent!");
-      //   return;
-      // }
-        const jsonData = JSON.stringify({sequence});
-        const dataString = jsonData + '\n';
-        console.log(dataString);
-        this.serialPort = await navigator.serial.requestPort();
-        await this.serialPort.open({ baudRate: 9600 });
-        const writer = this.serialPort.writable.getWriter();
-        await writer.write(new TextEncoder().encode(dataString));
-        writer.releaseLock();
-        console.log(`Serial communication success: ${dataString}`);
-      } catch (error) {
-        console.error("Serial communication failed!:", error);
-      }
+    if (!this.$signalR || this.$signalR.state !== 'Connected') {
+      console.error("SignalR is not connected!");
+      return;
+    }
+    await this.$signalR.invoke("SendAnswer", { sequence });
+    console.log("SignalR send success:", sequence);
+  } catch (error) {
+    console.error("SignalR send failed:", error);
+  }
     },
     async submitAnswer() {
     if (!this.isRunning) {
@@ -132,47 +147,7 @@ export default {
     {
         await this.sendToArduino({ sequence });
     }
-    const result = await this.readFromArduino();
-    this.currentResult.userAnswer = result.userAnswer;
-    this.currentResult.correctAnswer = result.correctAnswer;
-    if (!result.isCorrect) {
-      this.isRunning = false;
-      alert("Game Over!");
-      await this.serialPort.close();
-      this.serialPort = null;
-    } else{
-          this.inputSequence = '';
-    }
   },
-  async readFromArduino() {
-     if (this.mock) {
-      await new Promise(resolve => setTimeout(resolve, 500));
-      return {
-        correctAnswer: '2',
-        userAnswer: this.inputSequence,
-        isCorrect: this.inputSequence === '2'
-      };
-    }
-    if (!this.serialPort) return null;
-    try {
-      const decoder = new TextDecoderStream();
-      const readableStreamClosed = this.serialPort.readable.pipeTo(decoder.writable);
-      const reader = decoder.readable.getReader();
-  
-      const { value, done } = await reader.read(); 
-      reader.releaseLock();
-  
-      if (value) {
-        const result = JSON.parse(value.trim());
-        return result;
-      }
-    } catch (err) {
-      console.error("Failed to read from Arduino:", err);
-    }
-  
-    return null;
-}
-
   },
   created() {
   // this.currentStars = parseInt(sessionStorage.getItem(`stars-${this.gameName}`)) || 0;
@@ -243,8 +218,6 @@ export default {
   font-size: 1.6rem;
 }
 
-
-
 .number {
   margin-right: -12px;
   margin-bottom: 0px;
@@ -257,17 +230,17 @@ export default {
 .semi-yellow {
   background-color: rgba(255, 255, 255, 0.1);
 }
-.game-result {
+.lives {
   grid-column: 1 / 2;
   grid-row: 2 / 5;
   display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  width: 260px;
-  min-height: 280px;
-  padding: 1rem;
-
+  left: 12px;
+  bottom: 12px;
+  display: flex;
+  gap: 3px;
+}
+.heart {
+  width: 25px;
+  height: 25px;
 }
 </style>

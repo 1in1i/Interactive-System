@@ -1,6 +1,12 @@
 <template>
   <div class="count-notes">
       <h1 class="title">Count Notes</h1>
+       <div class="lives">
+         <img v-for="(life, index) in totalLives" 
+         :key="index"
+         :src="index < remainingLives? heartIcon : brokenheartIcon"
+         class="heart">
+        </div>
        <div class="sidebar">
         <div class="instructions">
           <h2 class="instruction">Instructions</h2>
@@ -17,7 +23,7 @@
         <p style="font-size: 18px;">How many 'Do' notes did you hear?</p>
         <div class="input-group">
             <el-input v-model="input" placeholder="Please input number" style="width: 160px;"></el-input>
-            <el-button type="success">Submit</el-button>
+            <el-button type="primary">Submit</el-button>
         </div>
       </div>
       <div class="colorButtons">
@@ -30,6 +36,7 @@
           <el-button class="colorButton" @click="appendToSequence('6'); playNote('la')">La</el-button>
           <el-button class="colorButton" @click="appendToSequence('7'); playNote('si')">Si</el-button>
         </el-row>
+        
       </div>
 
       <div class="buttons">
@@ -48,6 +55,10 @@ export default {
     return {
       isRunning: false,
       input:'',
+      totalLives : 3,
+      remainingLives : 2,
+      heartIcon : '../public/icon/heart1.png',
+      brokenheartIcon: '../public/icon/heart2.png',
     //   currentStars: 1,
     //   maxStars: 3,
       gameName: 'Replicate Number',
@@ -186,5 +197,18 @@ export default {
     display: flex;
     gap: 15px;
     margin-top: 10px;
+}
+.lives {
+  grid-column: 1 / 2;
+  grid-row: 2 / 5;
+  display: flex;
+  left: 12px;
+  bottom: 12px;
+  display: flex;
+  gap: 3px;
+}
+.heart {
+  width: 25px;
+  height: 25px;
 }
 </style>

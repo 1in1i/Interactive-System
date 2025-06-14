@@ -1,23 +1,12 @@
 <template>
   <div class="rotation-game">
       <h1 class="title">Copy Rotation</h1>
-       <!-- <div class="star-badge">
-         <span
-           v-for="n in maxStars"
-           :key="n"
-           class="star"
-           :class="{ filled: n <= currentStars }"
-         >★</span>
-        </div> -->
-                
-        <div class="game-result">
-          <h2 class="instruction">Game Answer</h2>
-          <p>Correct Answer:</p>
-          <p>20°</p>
-          <p>Your Answer:</p>
-          <p>20°</p>
+       <div class="lives">
+         <img v-for="(life, index) in totalLives" 
+         :key="index"
+         :src="index < (3 - errorCount) ? heartIcon : brokenheartIcon"
+         class="heart">
         </div>
-
       <div class="sidebar">
         <div class="instructions">
           <h2 class="instruction">Instructions</h2>
@@ -25,8 +14,8 @@
         </div>
         <div class="records">
           <h2 class="record">Records</h2>
-          <p>Mistakes: 0</p>
-          <p>Time: 00:00</p>
+          <p>Mistakes: {{ errorCount }}</p>
+          <p>Time: {{ elapsedSeconds === null ? '00:00' : formattedTime }}</p>
         </div>
       </div>
 
@@ -34,8 +23,7 @@
         <el-button class="button"
         :type="isRunning ? 'danger' : 'success'"
         round
-        @click="controlGame"
-        :disabled="!isRunning && currentStars >= maxStars"        
+        @click="isRunning? abortGame() : startGame()"        
       >
         {{ isRunning ? 'Abort' : 'Start' }}
       </el-button>
@@ -43,50 +31,85 @@
   </div>
 </template>
 <script>
+import { HubConnectionBuilder, LogLevel } from '@microsoft/signalr'
+import { toHandlers } from 'vue';
 export default {
   data() {
     return {
       isRunning: false,
-      // currentStars: 1,
-      // maxStars: 3,
+      totalLives : 3,
+      heartIcon : '../public/icon/heart1.png',
+      brokenheartIcon: '../public/icon/heart2.png',
       gameName: 'Copy Rotation',
-      serialPort: null
+      connection: null,
+      errorCount: 0,
+      correct: null,
+      elapsedSeconds: 0,
+      timer: null,
+    }
+  },
+  computed: {
+    formattedTime() {
+      const mins = Math.floor(this.elapsedSeconds / 60)
+      const secs = this.elapsedSeconds % 60
+      return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
     }
   },
   methods: {
-    async controlGame() {
-      if(!this.isRunning){
-      //   if (this.currentStars < this.maxStars) {
-      //   this.currentStars += 1;
-      //   sessionStorage.setItem(`stars-${this.gameName}`, this.currentStars);
-      // }
-      // await this.sendLevelToArduino(this.currentStars);
-      }
-      else{
-        if (this.serialPort) {
-          await this.serialPort.close();
-          this.serialPort = null;
-        }
-      }
-      this.isRunning = !this.isRunning
-    },
-    async sendLevelToArduino(starLevel) {
-      try {
-        this.serialPort = await navigator.serial.requestPort();
-        await this.serialPort.open({ baudRate: 9600 });
-        const writer = this.serialPort.writable.getWriter();
-        await writer.write(new TextEncoder().encode(starLevel.toString()));
-        writer.releaseLock();
-        console.log(`Serial communication success: ${starLevel}`);
-      } catch (error) {
-        console.error("Serial communication failed!:", error);
-      }
-    },
-
+   async startGame(){
+    this.elapsedSeconds = null;
+    this.isRunning = true;
+    this.errorCount = 0;
+    this.correct = null;
+    this.timer = setInterval(() => {
+        this.elapsedSeconds++
+      }, 1000)
+    try{
+      await this.$signalR.invoke('startGame');//startGame
+      console.log("successful connection.")
+    }catch (err){
+      console.log("failed connection.")
+    }
+   },
+   async abortGame(){
+    this.isRunning = false;
+     if (this.timer) {
+        clearInterval(this.timer)
+        this.timer = null
+      };
+    try{
+      await this.$signalR.invoke("abortGame");//abortGame
+    }catch(err){
+      console.log("failed connection.")
+    }
+   },
+   handleDataUpdated(status, mistakes){
+    this.errorCount = mistakes;
+    this.status = status;
+    if(this.errorCount >= 3){
+      this.isRunning = false;
+      alert("GAME OVER!");
+      this.abortGame();
+    }
+   },
   },
-  created() {
-  // this.currentStars = parseInt(sessionStorage.getItem(`stars-${this.gameName}`)) || 0;
+   async mounted() {
+    // this.connection = new HubConnectionBuilder()
+    //   .withUrl('/gameHub', { withCredentials: true })
+    //   .configureLogging(LogLevel.Information)
+    //   .withAutomaticReconnect()
+    //   .build()
+
+    // this.connection.on('PotentiometerUpdated', this.handleDataUpdated)
+
+    // try {
+    //   await this.connection.start()
+    //   console.log('SignalR connected.')
+    // } catch (err) {
+    //   console.error('SignalR connection failed:', err)
+    // }
   }
+  
 }
 </script>
 <style>
@@ -143,27 +166,18 @@ export default {
   font-size: 1.6rem;
 }
 
-.game-result {
+.lives {
   grid-column: 1 / 2;
   grid-row: 2 / 5;
   display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  width: 180px;
-  height: 230px;
-  padding: 1rem;
-
+  left: 12px;
+  bottom: 12px;
+  display: flex;
+  gap: 3px;
+}
+.heart {
+  width: 25px;
+  height: 25px;
 }
 
-.star {
-  font-size: 1.2rem;
-  color: #d0d0d0; 
-}
-
-.star.filled {
-  color: #FFD700; 
-  text-shadow: 0 0 4px rgba(255, 215, 0, 0.5);
-}
 </style>
