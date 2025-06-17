@@ -36,16 +36,16 @@ connection.on('IterationStarted', iteration => {
 })
 
 async function startSignalR() {
-  // try {
-  //   await connection.start()
-  //   console.log('SignalR connected to /gameHub')
-  // } catch (err) {
-  //   console.error('SignalR connection error:', err)
-  //   setTimeout(startSignalR, 2000)
-  // }
+  try {
+    await connection.start()
+    console.log('SignalR connected to /gameHub')
+  } catch (err) {
+    console.error('SignalR connection error:', err)
+    setTimeout(startSignalR, 2000)
+  }
 }
 
-// startSignalR()
+startSignalR()
 
 // Expose the connection globally if needed
 app.config.globalProperties.$signalR = connection

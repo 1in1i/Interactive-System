@@ -14,7 +14,7 @@
         </div>
         <div class="records">
           <h2 class="record">Records</h2>
-          <p>Mistakes: 0</p>
+          <p>Mistakes: {{ errorCount }}</p>
           <p>Time: {{ elapsedSeconds === null ? '00:00' : formattedTime }}</p>
         </div>
       </div>
@@ -57,7 +57,6 @@
   </div>
 </template>
 <script>
-import { HubConnectionBuilder, LogLevel } from '@microsoft/signalr'
 export default {
   data() {
     return {
@@ -65,13 +64,12 @@ export default {
       totalLives : 3,
       heartIcon : '../public/icon/heart1.png',
       brokenheartIcon: '../public/icon/heart2.png',
-      // currentStars: 1,
-      // maxStars: 3,
       gameName: 'Replicate Number',
       errorCount: 0,
       correct: null,
       elapsedSeconds: 0,
       timer: null,
+      inputSequence : ''
     }
   },
   computed: {
@@ -82,6 +80,17 @@ export default {
     }
   },
   methods: {
+    saveGameState(gameName, errorCount, elapsedSeconds) {
+      const state = { errorCount, elapsedSeconds };
+      sessionStorage.setItem(`gameState_${gameName}`, JSON.stringify(state));
+    },
+    loadGameState(gameName) {
+      const stateStr = sessionStorage.getItem(`gameState_${gameName}`);
+      if (stateStr) {
+        return JSON.parse(stateStr);
+      }
+      return null;
+    },
     appendToSequence(char){
       this.inputSequence += char;
     },
@@ -143,15 +152,28 @@ export default {
       return;
     }
     const sequence = this.inputSequence;
-    if(!this.mock)
-    {
+    console.log(sequence)
         await this.sendToArduino({ sequence });
+    this.inputSequence = '';
+  },
+  },
+  async mounted() {
+    const savedState = this.loadGameState(this.gameName);
+    if (savedState) {
+      this.errorCount = savedState.errorCount;
+      this.elapsedSeconds = savedState.elapsedSeconds;
     }
+    const connection = this.$signalR
+    connection.on('PotentiometerUpdated', this.handleDataUpdated)
   },
+   watch: {
+    errorCount(newVal) {
+      this.saveGameState(this.gameName, newVal, this.elapsedSeconds);
+    },
+    elapsedSeconds(newVal) {
+      this.saveGameState(this.gameName, this.errorCount, newVal);
+    },
   },
-  created() {
-  // this.currentStars = parseInt(sessionStorage.getItem(`stars-${this.gameName}`)) || 0;
-  }
 }
 </script>
 <style scoped>

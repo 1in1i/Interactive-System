@@ -14,19 +14,19 @@ export default defineConfig({
     },
   },
   server: {
-    // proxy: {
-    //   // Proxy REST API calls
-    //   '/api': {
-    //     target: 'https://localhost:5010',
-    //     changeOrigin: true,
-    //     secure: false,
-    //   },
-    //   // Proxy SignalR negotiate and WebSocket traffic
-    //   '/gameHub': {
-    //     target: 'https://localhost:5010',
-    //     ws: true,
-    //     secure: false,
-    //   },
-    // }
+    proxy: {
+      // Proxy REST API calls
+      '/api': {
+        target: 'https://localhost:5010',
+        changeOrigin: true,
+        secure: false,
+      },
+      // Proxy SignalR negotiate and WebSocket traffic
+      '/gameHub': {
+        target: 'https://localhost:5010',
+        ws: true,
+        secure: false,
+      },
+    }
   }
 })

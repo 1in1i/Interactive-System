@@ -31,8 +31,6 @@
   </div>
 </template>
 <script>
-import { HubConnectionBuilder, LogLevel } from '@microsoft/signalr'
-import { toHandlers } from 'vue';
 export default {
   data() {
     return {
@@ -56,6 +54,17 @@ export default {
     }
   },
   methods: {
+     saveGameState(gameName, errorCount, elapsedSeconds) {
+      const state = { errorCount, elapsedSeconds };
+      sessionStorage.setItem(`gameState_${gameName}`, JSON.stringify(state));
+    },
+    loadGameState(gameName) {
+      const stateStr = sessionStorage.getItem(`gameState_${gameName}`);
+      if (stateStr) {
+        return JSON.parse(stateStr);
+      }
+      return null;
+    },
    async startGame(){
     this.elapsedSeconds = null;
     this.isRunning = true;
@@ -94,21 +103,22 @@ export default {
    },
   },
    async mounted() {
-    // this.connection = new HubConnectionBuilder()
-    //   .withUrl('/gameHub', { withCredentials: true })
-    //   .configureLogging(LogLevel.Information)
-    //   .withAutomaticReconnect()
-    //   .build()
-
-    // this.connection.on('PotentiometerUpdated', this.handleDataUpdated)
-
-    // try {
-    //   await this.connection.start()
-    //   console.log('SignalR connected.')
-    // } catch (err) {
-    //   console.error('SignalR connection failed:', err)
-    // }
-  }
+    const savedState = this.loadGameState(this.gameName);
+    if (savedState) {
+      this.errorCount = savedState.errorCount;
+      this.elapsedSeconds = savedState.elapsedSeconds;
+    }
+    const connection = this.$signalR
+    connection.on('PotentiometerUpdated', this.handleDataUpdated)
+  },
+  watch: {
+    errorCount(newVal) {
+      this.saveGameState(this.gameName, newVal, this.elapsedSeconds);
+    },
+    elapsedSeconds(newVal) {
+      this.saveGameState(this.gameName, this.errorCount, newVal);
+    },
+  },
   
 }
 </script>

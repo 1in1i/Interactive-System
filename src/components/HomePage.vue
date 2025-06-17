@@ -8,14 +8,6 @@
           :style="{ background: buttonColors[index].bg}" 
           @click="goToGame(game.route)">
         <span class="game-name">{{ game.name }}</span>
-        <!-- <div class="star-badge">
-          <span
-          v-for="n in game.maxStars"
-          :key="n"
-          class="star"
-          :class="{ filled: n <= getCurrentStars(game.name) }"
-         >★</span>
-        </div> -->
       </button>
     </div>
     <div class="video-wrapper">

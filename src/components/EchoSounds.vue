@@ -14,7 +14,7 @@
         </div>
         <div class="records">
           <h2 class="record">Records</h2>
-          <p>Mistakes: 0</p>
+          <p>Mistakes: {{ errorCount }}</p>
           <p>Time: {{ elapsedSeconds === null ? '00:00' : formattedTime }}</p>
         </div>
       </div>
@@ -69,6 +69,17 @@ export default {
     }
   },
   methods: {
+    saveGameState(gameName, errorCount, elapsedSeconds) {
+      const state = { errorCount, elapsedSeconds };
+      sessionStorage.setItem(`gameState_${gameName}`, JSON.stringify(state));
+    },
+    loadGameState(gameName) {
+      const stateStr = sessionStorage.getItem(`gameState_${gameName}`);
+      if (stateStr) {
+        return JSON.parse(stateStr);
+      }
+      return null;
+    },
     appendToSequence(char){
       this.inputSequence += char;
     },
@@ -137,16 +148,29 @@ export default {
       return;
     }
     const sequence = this.inputSequence;
-    if(!this.mock)
-    {
+    console.log(sequence)
         await this.sendToArduino({ sequence });
-    }
+    this.inputSequence = ''
   },
 
   },
-  created() {
-//   this.currentStars = parseInt(sessionStorage.getItem(`stars-${this.gameName}`)) || 0;
-  }
+  async mounted() {
+    const savedState = this.loadGameState(this.gameName);
+    if (savedState) {
+      this.errorCount = savedState.errorCount;
+      this.elapsedSeconds = savedState.elapsedSeconds;
+    }
+    const connection = this.$signalR
+    connection.on('PotentiometerUpdated', this.handleDataUpdated)
+  },
+   watch: {
+    errorCount(newVal) {
+      this.saveGameState(this.gameName, newVal, this.elapsedSeconds);
+    },
+    elapsedSeconds(newVal) {
+      this.saveGameState(this.gameName, this.errorCount, newVal);
+    },
+  },
 }
 </script>
 <style scoped>
