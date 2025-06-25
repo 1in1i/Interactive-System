@@ -20,6 +20,7 @@ export default defineConfig({
         target: 'http://localhost:5010',
         changeOrigin: true,
         secure: false,
+        rewrite: path => path.replace(/^\/api/, '/api')
       },
       // Proxy SignalR negotiate and WebSocket traffic
       '/gameHub': {
