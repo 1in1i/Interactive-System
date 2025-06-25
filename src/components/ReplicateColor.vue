@@ -8,12 +8,18 @@
          class="heart">
         </div>
       <div class="sidebar">
-        <div class="instructions">
-          <h2 class="instruction">Instructions</h2>
-          <p>Instructions</p>
+         <div class="instructions">
+          <h2 class="instruction" style="font-weight: bold;">Instructions</h2>
+          <p class="text" data-icon="👉">Click the Start button to begin.</p>
+          <p class="text" data-icon="👀">Watch and memorize the color sequence shown in the game.</p>
+          <p class="text" data-icon="🧠">Replicate the color sequence and click the Submit button.</p>
+          <p class="text" data-icon="🌟">Each time you get it right, the game gets harder, the sequence gets longer.</p>
+          <p class="text" data-icon="❤️">You have 3 hearts (lives):</p>
+          <p class="text" data-icon="">If you make a mistake, one heart will go. When all 3 hearts are gone, the game ends.</p>
+          <p class="text" data-icon="🛑">You can also press the Abort button to stop the game whenever you like.</p>
         </div>
         <div class="records">
-          <h2 class="record">Records</h2>
+          <h2 class="record" style="font-weight: bold;">Records</h2>
           <p>Mistakes: {{ errorCount }}</p>
           <p>Time: {{ elapsedSeconds === null ? '00:00' : formattedTime }}</p>
         </div>
@@ -38,7 +44,7 @@
           </el-button>
         </el-row>
       <el-row style="margin-top: 2.5rem;">
-            <el-button type="primary " @click="submitAnswer">Submit</el-button>
+            <el-button class="submit-button" type="primary " @click="submitAnswer">Submit</el-button>
         </el-row>
       </div>
 
@@ -46,7 +52,7 @@
         <el-button class="button"
         :type="isRunning ? 'danger' : 'success'"
         round
-        @click="isRunning? abortGame() : startGame()"        
+        @click="isRunning? abortGame() : startGame(this.gameId)"        
       >
         {{ isRunning ? 'Abort' : 'Start' }}
       </el-button>
@@ -68,6 +74,7 @@ export default {
       correct: null,
       elapsedSeconds: 0,
       timer: null,
+      gameId: 3
     }
   },
     computed: {
@@ -92,7 +99,7 @@ export default {
     appendToSequence(char){
       this.inputSequence += char + ' ';
     },
-      async startGame(){
+      async startGame(gameId){
     this.elapsedSeconds = null;
     this.isRunning = true;
     this.errorCount = 0;
@@ -100,11 +107,18 @@ export default {
     this.timer = setInterval(() => {
         this.elapsedSeconds++
       }, 1000)
-    try{
-      await this.$signalR.invoke('startGame');//startGame
-      console.log("successful connection.")
-    }catch (err){
-      console.log("failed connection.")
+    try {
+        const response = await fetch(`/api/game/start/${gameId}`, {
+            method: "POST"
+        });
+
+        if (response.ok) {
+            console.log("Game started successfully.");
+        } else {
+            console.error("Failed to start game.");
+        }
+    } catch (err) {
+        console.error("Error starting game:", err);
     }
    },
    async abortGame(){
@@ -119,27 +133,31 @@ export default {
       console.log("failed connection.")
     }
    },
-   handleDataUpdated(status, mistakes){
-    this.errorCount = mistakes;
-    this.status = status;
-    if(this.errorCount >= 3){
-      this.isRunning = false;
-      alert("GAME OVER!");
-      this.abortGame();
+  //  handleDataUpdated(status, mistakes){
+  //   this.errorCount = mistakes;
+  //   this.status = status;
+  //   if(this.errorCount >= 3){
+  //     this.isRunning = false;
+  //     alert("GAME OVER!");
+  //     this.abortGame();
+  //   }
+  //  },
+    async submitSequence(gameId, sequenceArray) {
+    try {
+        const response = await fetch(`/api/game/submit-sequence/${gameId}`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(sequenceArray)
+        });
+
+        const result = await response.json();
+        console.log("Submit result:", result); // { correct: true/false }
+    } catch (err) {
+        console.error("Error submitting sequence:", err);
     }
-   },
-    async sendToArduino({sequence}) {
-      try {
-    if (!this.$signalR || this.$signalR.state !== 'Connected') {
-      console.error("SignalR is not connected!");
-      return;
-    }
-    await this.$signalR.invoke("SendAnswer", { sequence });
-    console.log("SignalR send success:", sequence);
-  } catch (error) {
-    console.error("SignalR send failed:", error);
-  }
-    },
+},
     async submitAnswer() {
     if (!this.isRunning) {
       alert("Please Start Game!");
@@ -150,11 +168,21 @@ export default {
       return;
     }
     let sequence = this.inputSequence;
-    sequence = sequence.trim();
-    console.log(sequence);
-        await this.sendToArduino({ sequence });
+     sequence = sequence.trim().split(" ");
+    console.log(sequence)
+        await this.submitSequence(this.gameId, sequence);
     this.inputSequence = '';
   },
+   handleSequenceResult(result){
+    if(result == false){
+          this.errorCount++
+    }
+    if(this.errorCount >= 3){
+      this.isRunning = false;
+      alert("GAME OVER!");
+      this.abortGame();
+    }
+   }
   },
   async mounted() {
     const savedState = this.loadGameState(this.gameName);
@@ -163,7 +191,7 @@ export default {
       this.elapsedSeconds = savedState.elapsedSeconds;
     }
     const connection = this.$signalR
-    connection.on('PotentiometerUpdated', this.handleDataUpdated)
+    connection.on("sequenceResult",this.handleSequenceResult);
   },
    watch: {
     errorCount(newVal) {
@@ -178,7 +206,7 @@ export default {
 <style scoped>
 .replicate-color {
   display: grid;
-  background: linear-gradient(to bottom, #fdfbfb, #ebedee);
+  background: radial-gradient(circle,rgba(255, 248, 251, 1) 0%, rgba(255, 228, 240, 1) 50%);
   grid-template-columns: 1fr 250px;
   grid-template-rows: auto auto auto auto auto;
   gap: 1rem;
@@ -210,13 +238,25 @@ export default {
 
 .instructions, .records {
   padding: 1rem;
-  border: 1px solid #ccc;
+  border: 1px solid #caa0d4; 
+  background-color: rgba(255, 240, 245, 0.5);
   border-radius: 8px;
+  width: 300px;
+  /* text-align: center; */
+  font-family: 'Comic Sans MS', 'Baloo 2', cursive;
+
 }
+
+.instructions h2,
+.records {
+  text-align: center;
+  margin-bottom: 0.5rem;
+}
+
 
 .buttons {
   grid-column: 1 / 3;
-  grid-row:  3 / 5;
+  grid-row:  3 / 4;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -230,12 +270,16 @@ export default {
   flex-direction: column;
   align-items: center;
   padding-top: 2rem;
+  margin-top: 40px;
 }
 
 .button{
   width: 150px;
   height: 60px;
   font-size: 1.6rem;
+  font-family: 'Comic Sans MS', 'Baloo 2', cursive;
+  margin-top: 80px;
+
 }
 .colorButton {
   margin-right: 10px;
@@ -269,11 +313,29 @@ export default {
   bottom: 12px;
   display: flex;
   gap: 3px;
+  margin-top: 35px;
 }
 .heart {
   width: 25px;
   height: 25px;
 }
 
+.text {
+  font-size: 13px;
+  line-height: 1.6;
+  display: flex;
+  align-items: flex-start;
+  text-align: left;
+}
 
+.text::before {
+  content: attr(data-icon);
+  display: inline-block;
+  width: 1.8em;
+  flex-shrink: 0;
+}
+.submit-button{
+    font-family: 'Comic Sans MS', 'Baloo 2', cursive;
+
+}
 </style>

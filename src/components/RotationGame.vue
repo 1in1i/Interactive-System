@@ -1,6 +1,6 @@
 <template>
   <div class="rotation-game">
-      <h1 class="title">Copy Rotation</h1>
+      <h1 class="title" >Copy Rotation</h1>
        <div class="lives">
          <img v-for="(life, index) in totalLives" 
          :key="index"
@@ -9,11 +9,17 @@
         </div>
       <div class="sidebar">
         <div class="instructions">
-          <h2 class="instruction">Instructions</h2>
-          <p>Instructions</p>
+          <h2 class="instruction" style="font-weight: bold;">Instructions</h2>
+          <p class="text" data-icon="👉">Click the Start button to begin.</p>
+          <p class="text" data-icon="👀">Watch and memorize the angle sequence shown in the game.</p>
+          <p class="text" data-icon="🧠">Replicate the angle sequence.</p>
+          <p class="text" data-icon="🌟">Each time you get it right, the game gets harder, the sequence gets longer.</p>
+          <p class="text" data-icon="❤️">You have 3 hearts (lives):</p>
+          <p class="text" data-icon="">If you make a mistake, one heart will go. When all 3 hearts are gone, the game ends.</p>
+          <p class="text" data-icon="🛑">You can also press the Abort button to stop the game whenever you like.</p>
         </div>
         <div class="records">
-          <h2 class="record">Records</h2>
+          <h2 class="record" style="font-weight: bold;">Records</h2>
           <p>Mistakes: {{ errorCount }}</p>
           <p>Time: {{ elapsedSeconds === null ? '00:00' : formattedTime }}</p>
         </div>
@@ -100,9 +106,19 @@ export default {
       console.log("failed connection.")
     }
    },
-   handleDataUpdated(status, mistakes){
-    this.errorCount = mistakes;
-    this.status = status;
+  //  handleDataUpdated(status, mistakes){
+  //   this.errorCount = mistakes;
+  //   this.status = status;
+  //   if(this.errorCount >= 3){
+  //     this.isRunning = false;
+  //     alert("GAME OVER!");
+  //     this.abortGame();
+  //   }
+  //  },
+  handleSequenceResult(result){
+    if(result == false){
+          this.errorCount++
+    }
     if(this.errorCount >= 3){
       this.isRunning = false;
       alert("GAME OVER!");
@@ -117,7 +133,8 @@ export default {
       this.elapsedSeconds = savedState.elapsedSeconds;
     }
     const connection = this.$signalR
-    connection.on('PotentiometerUpdated', this.handleDataUpdated)
+    connection.on("sequenceResult",this.handleSequenceResult);
+
   },
   watch: {
     errorCount(newVal) {
@@ -130,10 +147,10 @@ export default {
   
 }
 </script>
-<style>
+<style scoped>
 .rotation-game {
   display: grid;
-  background: linear-gradient(to bottom, #fdfbfb, #ebedee);
+  background: radial-gradient(circle,rgba(255, 248, 251, 1) 0%, rgba(255, 228, 240, 1) 50%);
   grid-template-columns: 1fr 250px;
   grid-template-rows: auto auto auto auto auto;
   gap: 1rem;
@@ -165,13 +182,23 @@ export default {
 
 .instructions, .records {
   padding: 1rem;
-  border: 1px solid #ccc;
+  border: 1px solid #caa0d4; /* 淡紫 */
+  background-color: rgba(255, 240, 245, 0.5);
   border-radius: 8px;
+  width: 300px;
+  /* text-align: center; */
+  font-family: 'Comic Sans MS', 'Baloo 2', cursive;
+
 }
 
+.instructions h2,
+.records {
+  text-align: center;
+  margin-bottom: 0.5rem;
+}
 .buttons {
   grid-column: 1 / 3;
-  grid-row: 3 / 5;
+  grid-row: 3 / 4;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -182,6 +209,8 @@ export default {
   width: 150px;
   height: 60px;
   font-size: 1.6rem;
+  font-family: 'Comic Sans MS', 'Baloo 2', cursive;
+  margin-top: 100px;
 }
 
 .lives {
@@ -192,10 +221,24 @@ export default {
   bottom: 12px;
   display: flex;
   gap: 3px;
+  margin-top: 40px; 
 }
 .heart {
   width: 25px;
   height: 25px;
 }
+.text {
+  font-size: 13px;
+  line-height: 1.6;
+  display: flex;
+  align-items: flex-start;
+  text-align: left;
+}
 
+.text::before {
+  content: attr(data-icon);
+  display: inline-block;
+  width: 1.8em;
+  flex-shrink: 0;
+}
 </style>

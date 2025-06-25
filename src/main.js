@@ -27,9 +27,9 @@ const connection = new HubConnectionBuilder()
   .withAutomaticReconnect()
   .build()
 
-connection.on('PotentiometerUpdated', data => {
-  console.log('PotentiometerUpdated:', data)
-})
+// connection.on('PotentiometerUpdated', data => {
+//   console.log('PotentiometerUpdated:', data)
+// })
 
 connection.on('IterationStarted', iteration => {
   console.log('IterationStarted:', iteration)
