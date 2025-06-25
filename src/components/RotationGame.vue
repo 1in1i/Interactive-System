@@ -66,7 +66,7 @@ export default {
       }
       return null;
     },
-   async startGame(){
+   async startGame(gameId){
     this.elapsedSeconds = null;
     this.isRunning = true;
     this.errorCount = 0;
