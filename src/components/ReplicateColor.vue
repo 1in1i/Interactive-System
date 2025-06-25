@@ -21,19 +21,19 @@
     
       <div class="colorButtons">
         <el-row>
-          <el-button class="colorButton" @click="appendToSequence('1')">
+          <el-button class="colorButton" @click="appendToSequence('Red')">
             <img src="../../public/icon/red.png"/>
           </el-button>
-          <el-button class="colorButton" @click="appendToSequence('2')">
+          <el-button class="colorButton" @click="appendToSequence('Blue')">
             <img src="../../public/icon/blue.png"/>
           </el-button>
-          <el-button class="colorButton" @click="appendToSequence('3')">
+          <el-button class="colorButton" @click="appendToSequence('Yellow')">
             <img src="../../public/icon/yellow.png"/>
           </el-button>
-          <el-button class="colorButton" @click="appendToSequence('4')">
+          <el-button class="colorButton" @click="appendToSequence('Green')">
             <img src="../../public/icon/green.png"/>
           </el-button>
-          <el-button class="colorButton" @click="appendToSequence('5')">
+          <el-button class="colorButton" @click="appendToSequence('Purple')">
             <img src="../../public/icon/white.png"/>
           </el-button>
         </el-row>
@@ -90,7 +90,7 @@ export default {
       return null;
     },
     appendToSequence(char){
-      this.inputSequence += char;
+      this.inputSequence += char + ' ';
     },
       async startGame(){
     this.elapsedSeconds = null;
@@ -149,7 +149,8 @@ export default {
       alert("Submit before Inputting!");
       return;
     }
-    const sequence = this.inputSequence;
+    let sequence = this.inputSequence;
+    sequence = sequence.trim();
     console.log(sequence);
         await this.sendToArduino({ sequence });
     this.inputSequence = '';

@@ -17,13 +17,13 @@ export default defineConfig({
     proxy: {
       // Proxy REST API calls
       '/api': {
-        target: 'https://localhost:5010',
+        target: 'http://localhost:5010',
         changeOrigin: true,
         secure: false,
       },
       // Proxy SignalR negotiate and WebSocket traffic
       '/gameHub': {
-        target: 'https://localhost:5010',
+        target: 'http://localhost:5010',
         ws: true,
         secure: false,
       },

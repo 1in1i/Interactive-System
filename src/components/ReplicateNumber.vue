@@ -41,7 +41,7 @@
           <el-button class="number semi-yellow" @click="appendToSequence('#')">#</el-button>
         </el-row>
         <el-row style="margin-top: 1rem;">
-            <el-button type="primary " @click="submitAnswer">Submit</el-button>
+            <el-button type="primary" @click="submitAnswer">Submit</el-button>
         </el-row>
       </div>
       
@@ -92,7 +92,7 @@ export default {
       return null;
     },
     appendToSequence(char){
-      this.inputSequence += char;
+      this.inputSequence += char + ' ';
     },
     async startGame(){
     this.elapsedSeconds = null;
@@ -151,7 +151,8 @@ export default {
       alert("Submit before Inputting!");
       return;
     }
-    const sequence = this.inputSequence;
+    let sequence = this.inputSequence;
+    sequence = sequence.trim();
     console.log(sequence)
         await this.sendToArduino({ sequence });
     this.inputSequence = '';

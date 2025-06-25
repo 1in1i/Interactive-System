@@ -20,13 +20,13 @@
       </div>
         <div class="colorButtons">
         <el-row>
-          <el-button class="colorButton" @click="appendToSequence('1'); playNote('do')" >Do</el-button>
-          <el-button class="colorButton" @click="appendToSequence('2'); playNote('re')">Re</el-button>
-          <el-button class="colorButton" @click="appendToSequence('3'); playNote('mi')">Mi</el-button>
-          <el-button class="colorButton" @click="appendToSequence('4'); playNote('fa')">Fa</el-button>
-          <el-button class="colorButton" @click="appendToSequence('5'); playNote('sol')">Sol</el-button>
-          <el-button class="colorButton" @click="appendToSequence('6'); playNote('la')">La</el-button>
-          <el-button class="colorButton" @click="appendToSequence('7'); playNote('si')">Si</el-button>
+          <el-button class="colorButton" @click="appendToSequence('Do'); playNote('do')" >Do</el-button>
+          <el-button class="colorButton" @click="appendToSequence('Re'); playNote('re')">Re</el-button>
+          <el-button class="colorButton" @click="appendToSequence('Mi'); playNote('mi')">Mi</el-button>
+          <el-button class="colorButton" @click="appendToSequence('Fa'); playNote('fa')">Fa</el-button>
+          <el-button class="colorButton" @click="appendToSequence('So'); playNote('sol')">Sol</el-button>
+          <el-button class="colorButton" @click="appendToSequence('La'); playNote('la')">La</el-button>
+          <el-button class="colorButton" @click="appendToSequence('Si'); playNote('si')">Si</el-button>
         </el-row>
         <el-row style="margin-top: 2rem;">
             <el-button type="primary " @click="submitAnswer">Submit</el-button>
@@ -80,15 +80,12 @@ export default {
       }
       return null;
     },
-    appendToSequence(char){
-      this.inputSequence += char;
-    },
     playNote(note) {
      const audio = new Audio(`../../public/sound/${note}.mp3`);
       audio.play().catch(e => console.error("erroe:", e));
     },
     appendToSequence(char){
-      this.inputSequence += char;
+      this.inputSequence += char +' ';
     },
     async startGame(){
     this.elapsedSeconds = null;
@@ -147,7 +144,8 @@ export default {
       alert("Submit before Inputting!");
       return;
     }
-    const sequence = this.inputSequence;
+    let sequence = this.inputSequence;
+    sequence = sequence.trim();
     console.log(sequence)
         await this.sendToArduino({ sequence });
     this.inputSequence = ''

@@ -41,7 +41,7 @@ async function startSignalR() {
     console.log('SignalR connected to /gameHub')
   } catch (err) {
     console.error('SignalR connection error:', err)
-    setTimeout(startSignalR, 2000)
+    setTimeout(startSignalR, 4000)
   }
 }
 
