@@ -134,7 +134,7 @@ export default {
         this.elapsedSeconds++
       }, 1000)
     try {
-        const response = await fetch(`/api/game/start/${gameId}`, {
+        const response = await fetch(`/api/game/game/start/${gameId}`, {
             method: "POST"
         });
 
