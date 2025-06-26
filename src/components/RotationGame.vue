@@ -51,6 +51,7 @@ export default {
       elapsedSeconds: 0,
       timer: null,
       gameId: 1,
+      sequenceHandler: null
     }
   },
   computed: {
@@ -119,10 +120,14 @@ export default {
     if(result == false){
           this.errorCount++
     }
-    if(this.errorCount >= 3){
+    if(this.errorCount >= 3 && !this.hasGameOver){
+      this.hasGameOver = true
       this.isRunning = false;
-      alert("GAME OVER!");
-      this.abortGame();
+      this.$alert('GAME OVER!', 'Notification', {
+      confirmButtonText: 'OK'
+    });      
+    this.abortGame();
+    return;
     }
    },
   },
@@ -132,10 +137,14 @@ export default {
       this.errorCount = savedState.errorCount;
       this.elapsedSeconds = savedState.elapsedSeconds;
     }
+    this.sequenceHandler = this.handleSequenceResult;
     const connection = this.$signalR
-    connection.on("sequenceResult",this.handleSequenceResult);
-
+    connection.on("sequenceResult",this.sequenceHandler);
   },
+  beforeDestroy() {
+  const connection = this.$signalR;
+  connection.off("sequenceResult", this.sequenceHandler);
+},
   watch: {
     errorCount(newVal) {
       this.saveGameState(this.gameName, newVal, this.elapsedSeconds);

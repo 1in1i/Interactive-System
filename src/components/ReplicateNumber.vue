@@ -76,7 +76,9 @@ export default {
       elapsedSeconds: 0,
       timer: null,
       inputSequence : '',
-      gameId: 2
+      gameId: 2,
+      sequenceHandler: null
+
     }
   },
   computed: {
@@ -156,25 +158,21 @@ export default {
 
         const result = await response.json();
         console.log("Submit result:", result); // { correct: true/false }
-         if(result.correct == false){
-          this.errorCount++
-         }
-        if(this.errorCount >= 3){
-        this.isRunning = false;
-         alert("GAME OVER!");
-        this.abortGame();
-    }
     } catch (err) {
         console.error("Error submitting sequence:", err);
     }
 },
     async submitAnswer() {
     if (!this.isRunning) {
-      alert("Please Start Game!");
+      this.$alert('Please start the game first!', 'Notification', {
+      confirmButtonText: 'OK'
+    });
       return;
     }
     if (!this.inputSequence) {
-      alert("Submit before Inputting!");
+       this.$alert('Complete the input to submit!', 'Notification', {
+      confirmButtonText: 'OK'
+    });
       return;
     }
     let sequence = this.inputSequence;
@@ -187,10 +185,14 @@ export default {
     if(result == false){
           this.errorCount++
     }
-    if(this.errorCount >= 3){
+    if(this.errorCount >= 3 && !this.hasGameOver){
+      this.hasGameOver = true;
       this.isRunning = false;
-      alert("GAME OVER!");
+       this.$alert('GAME OVER!', 'Notification', {
+      confirmButtonText: 'OK'
+    });
       this.abortGame();
+      return;
     }
    }
   },
@@ -200,9 +202,14 @@ export default {
       this.errorCount = savedState.errorCount;
       this.elapsedSeconds = savedState.elapsedSeconds;
     }
-    // const connection = this.$signalR
-    // connection.on("sequenceResult",this.handleSequenceResult);
+    this.sequenceHandler = this.handleSequenceResult;
+    const connection = this.$signalR
+    connection.on("sequenceResult",this.sequenceHandler);
   },
+  beforeDestroy() {
+  const connection = this.$signalR;
+  connection.off("sequenceResult", this.sequenceHandler);
+},
    watch: {
     errorCount(newVal) {
       this.saveGameState(this.gameName, newVal, this.elapsedSeconds);

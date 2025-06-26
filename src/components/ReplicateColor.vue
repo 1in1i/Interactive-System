@@ -44,7 +44,7 @@
           </el-button>
         </el-row>
       <el-row style="margin-top: 2.5rem;">
-            <el-button class="submit-button" type="primary " @click="submitAnswer">Submit</el-button>
+            <el-button class="submit-button" type="primary" @click="submitAnswer">Submit</el-button>
         </el-row>
       </div>
 
@@ -74,7 +74,9 @@ export default {
       correct: null,
       elapsedSeconds: 0,
       timer: null,
-      gameId: 3
+      gameId: 3,
+      sequenceHandler: null
+
     }
   },
     computed: {
@@ -160,11 +162,15 @@ export default {
 },
     async submitAnswer() {
     if (!this.isRunning) {
-      alert("Please Start Game!");
+      this.$alert('Please start the game first!', 'Notification', {
+      confirmButtonText: 'OK'
+    });
       return;
     }
     if (!this.inputSequence) {
-      alert("Submit before Inputting!");
+      this.$alert('Complete the input to submit!', 'Notification', {
+      confirmButtonText: 'OK'
+    });
       return;
     }
     let sequence = this.inputSequence;
@@ -177,10 +183,14 @@ export default {
     if(result == false){
           this.errorCount++
     }
-    if(this.errorCount >= 3){
+    if(this.errorCount >= 3 && !this.hasGameOver){
+      this.hasGameOver = true
       this.isRunning = false;
-      alert("GAME OVER!");
-      this.abortGame();
+      this.$alert('GAME OVER!', 'Notification', {
+      confirmButtonText: 'OK'
+    });      
+    this.abortGame();
+    return;
     }
    }
   },
@@ -190,9 +200,14 @@ export default {
       this.errorCount = savedState.errorCount;
       this.elapsedSeconds = savedState.elapsedSeconds;
     }
+     this.sequenceHandler = this.handleSequenceResult;
     const connection = this.$signalR
-    connection.on("sequenceResult",this.handleSequenceResult);
+    connection.on("sequenceResult",this.sequenceHandler);
   },
+  beforeDestroy() {
+  const connection = this.$signalR;
+  connection.off("sequenceResult", this.sequenceHandler);
+},
    watch: {
     errorCount(newVal) {
       this.saveGameState(this.gameName, newVal, this.elapsedSeconds);

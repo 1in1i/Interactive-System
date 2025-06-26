@@ -35,13 +35,13 @@
       </div>
       <div class="colorButtons">
         <el-row>
-          <el-button class="colorButton" @click="appendToSequence('Do'); playNote('do')" >Do</el-button>
-          <el-button class="colorButton" @click="appendToSequence('Re'); playNote('re')">Re</el-button>
-          <el-button class="colorButton" @click="appendToSequence('Mi'); playNote('mi')">Mi</el-button>
-          <el-button class="colorButton" @click="appendToSequence('Fa'); playNote('fa')">Fa</el-button>
-          <el-button class="colorButton" @click="appendToSequence('So'); playNote('sol')">So</el-button>
-          <el-button class="colorButton" @click="appendToSequence('La'); playNote('la')">La</el-button>
-          <el-button class="colorButton" @click="appendToSequence('Si'); playNote('si')">Si</el-button>
+          <el-button class="colorButton" @click="playNote('do')" >Do</el-button>
+          <el-button class="colorButton" @click="playNote('re')">Re</el-button>
+          <el-button class="colorButton" @click="playNote('mi')">Mi</el-button>
+          <el-button class="colorButton" @click="playNote('fa')">Fa</el-button>
+          <el-button class="colorButton" @click="playNote('sol')">So</el-button>
+          <el-button class="colorButton" @click="playNote('la')">La</el-button>
+          <el-button class="colorButton" @click="playNote('si')">Si</el-button>
         </el-row>
         
       </div>
@@ -72,7 +72,9 @@ export default {
       correct: null,
       elapsedSeconds: 0,
       timer: null,
-      gameId: 4
+      gameId: 4,
+      sequenceHandler: null
+
     }
   },
   computed: {
@@ -94,10 +96,35 @@ export default {
       }
       return null;
     },
-    playNote(note) {
-     const audio = new Audio(`../../public/sound/${note}.mp3`);
-      audio.play().catch(e => console.error("erroe:", e));
-    },
+     playNote(note) {
+      const noteFrequencies = {
+    'do': 261.63,
+    're': 293.66,
+    'mi': 329.63,
+    'fa': 349.23,
+    'sol': 392.00,
+    'la': 440.00,
+    'si': 493.88
+    };
+
+    const frequency = noteFrequencies[note.toLowerCase()];
+    if (!frequency) return;
+   
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = audioCtx.createOscillator();
+    const gainNode = audioCtx.createGain();
+   
+    oscillator.type = 'square'; 
+    oscillator.frequency.setValueAtTime(frequency, audioCtx.currentTime); 
+    gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime); 
+   
+    oscillator.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+   
+    oscillator.start();
+    oscillator.stop(audioCtx.currentTime + 0.3); 
+   
+     },
     async startGame(gameId){
     this.elapsedSeconds = null;
     this.isRunning = true;
@@ -150,10 +177,14 @@ export default {
     if(result == false){
           this.errorCount++
     }
-    if(this.errorCount >= 3){
+    if(this.errorCount >= 3 && !this.hasGameOver){
+      this.hasGameOver = true;
       this.isRunning = false;
-      alert("GAME OVER!");
+       this.$alert('GAME OVER!', 'Notification', {
+      confirmButtonText: 'OK'
+    });      
       this.abortGame();
+      return;
     }
    },
     async submitSequence(gameId, sequenceArray) {
@@ -174,16 +205,21 @@ export default {
 },
     async submitAnswer() {
     if (!this.isRunning) {
-      alert("Please Start Game!");
+      this.$alert('Please start the game first!', 'Notification', {
+      confirmButtonText: 'OK'
+    });
       return;
     }
     if (!this.input) {
-      alert("Submit before Inputting!");
+      this.$alert('Complete the input to submit!', 'Notification', {
+      confirmButtonText: 'OK'
+    });
       return;
     }
-    const answer = this.input;
-    console.log(answer,"input")
-        await this.submitSequence(this.gameId, sequence);
+    let answer = this.input;
+    answer = answer.split('');
+    console.log(JSON.stringify(answer),"input")
+    await this.submitSequence(this.gameId, answer);
     this.input = ''
   },
   },
@@ -193,9 +229,14 @@ export default {
       this.errorCount = savedState.errorCount;
       this.elapsedSeconds = savedState.elapsedSeconds;
     }
+     this.sequenceHandler = this.handleSequenceResult;
     const connection = this.$signalR
-    connection.on("sequenceResult",this.handleSequenceResult);
+    connection.on("sequenceResult",this.sequenceHandler);
   },
+  beforeDestroy() {
+  const connection = this.$signalR;
+  connection.off("sequenceResult", this.sequenceHandler);
+},
    watch: {
     errorCount(newVal) {
       this.saveGameState(this.gameName, newVal, this.elapsedSeconds);
