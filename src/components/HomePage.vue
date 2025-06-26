@@ -24,7 +24,7 @@ export default {
   data() {
     return {
       games: [
-        { name: 'Copy Rotation', route: "RotationGame", maxStars: 3 },
+        { name: 'Copy Rotations', route: "RotationGame", maxStars: 3 },
         { name: 'Replicate Numbers', route:"ReplicateNumber", maxStars: 3 },
         { name: 'Replicate Colors', route:"ReplicateColor", maxStars: 4 },
         { name: 'Count Notes', route:"CountNotes", maxStars: 3 },

@@ -1,6 +1,6 @@
 <template>
   <div class="rotation-game">
-      <h1 class="title" >Copy Rotation</h1>
+      <h1 class="title" >Copy Rotations</h1>
        <div class="lives">
          <img v-for="(life, index) in totalLives" 
          :key="index"

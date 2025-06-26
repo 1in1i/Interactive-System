@@ -12,6 +12,7 @@
           <h2 class="instruction" style="font-weight: bold;">Instructions</h2>
           <p class="text" data-icon="👉">Click the Start button to begin.</p>
           <p class="text" data-icon="👂">Listen to the note sequence played in the game.</p>
+          <p class="text" data-icon="🔢">Count how many times the "first“ note appears in the sequence.</p>
           <p class="text" data-icon="🧠">Enter your answer in the input box and click the Submit button.</p>
           <p class="text" data-icon="🎵">You can click and play the notes at the bottom to help you remember.</p>
           <p class="text" data-icon="🌟">Each time you get it right, the game gets harder, the sequence gets longer.</p>
@@ -27,7 +28,7 @@
       </div>
     
       <div class="question-bar">
-        <p style="font-size: 18px;font-family: 'Comic Sans MS', 'Baloo 2', cursive;">How many {{ firstNote == '' ? 'Do' : firstNote}} notes did you hear?</p>
+        <p style="font-size: 16px;font-family: 'Comic Sans MS', 'Baloo 2', cursive;">How many times did you hear the "first" note in the sequence?</p>
         <div class="input-group">
             <el-input v-model="input" placeholder="Input Box" style="width: 140px;"></el-input>
             <el-button class="submit-button" type="primary" @click="submitAnswer">Submit</el-button>
@@ -67,7 +68,6 @@ export default {
       heartIcon : '../public/icon/heart1.png',
       brokenheartIcon: '../public/icon/heart2.png',
       gameName: 'Count Notes',
-      firstNote : '',
        errorCount: 0,
       correct: null,
       elapsedSeconds: 0,
@@ -168,11 +168,6 @@ export default {
   //     this.abortGame();
   //   }
   //  },
-   handleNotesSequence(data){
-      if(Array.isArray(data) && data.length > 0){
-        this.firstNote = data [0];
-      }
-   },
     handleSequenceResult(result){
     if(result == false){
           this.errorCount++
@@ -314,7 +309,7 @@ export default {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding-top: 2rem;
+  padding-top: 1.5rem;
 }
 
 .button{
@@ -322,7 +317,7 @@ export default {
   height: 60px;
   font-size: 1.6rem;
   font-family: 'Comic Sans MS', 'Baloo 2', cursive;
-  margin-top: -100px;
+  margin-top: -150px;
 
 }
 
@@ -348,7 +343,7 @@ export default {
   flex-direction: column;
   align-items: center;
   padding-top: 2rem;
-  margin-top: 40px;
+  margin-top: 60px;
 }
 .input-group {
     display: flex;
