@@ -123,7 +123,7 @@ export default {
    
     oscillator.start();
     oscillator.stop(audioCtx.currentTime + 0.3); 
-   
+  
      },
     async startGame(gameId){
     this.elapsedSeconds = null;

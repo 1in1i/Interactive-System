@@ -133,7 +133,6 @@ export default {
         const response = await fetch(`/api/game/game/start/${gameId}`, {
             method: "POST"
         });
-
         if (response.ok) {
             console.log("Game started successfully.");
         } else {
