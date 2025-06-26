@@ -181,13 +181,13 @@ export default {
 },
     async submitAnswer() {
     if (!this.isRunning) {
-      this.$alert('Please start the game first!', 'Notification', {
+      this.$alert('Please start the game first!', {
       confirmButtonText: 'OK'
     });
       return;
     }
     if (!this.inputSequence) {
-      this.$alert('Complete the input to submit!', 'Notification', {
+      this.$alert('Complete the input to submit!', {
       confirmButtonText: 'OK'
     });
       return;
@@ -205,10 +205,12 @@ export default {
     if(this.errorCount >= 3 && !this.hasGameOver){
       this.hasGameOver = true;
       this.isRunning = false;
-       this.$alert('GAME OVER!', 'Notification', {
+       this.$alert('GAME OVER!', {
       confirmButtonText: 'OK'
+    }).then(()=>{
+          this.abortGame();
+          this.$router.push('/');
     });
-      this.abortGame();
       return;
     }
    }

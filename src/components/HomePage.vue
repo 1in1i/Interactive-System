@@ -43,9 +43,6 @@ export default {
     goToGame(route){
       this.$router.push({name: route})
     },
-    // getCurrentStars(gameName) {
-    // return parseInt(sessionStorage.getItem(`stars-${gameName}`)) || 0;
-    // }
   }
 
 }

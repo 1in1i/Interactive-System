@@ -107,15 +107,6 @@ export default {
       console.log("failed connection.")
     }
    },
-  //  handleDataUpdated(status, mistakes){
-  //   this.errorCount = mistakes;
-  //   this.status = status;
-  //   if(this.errorCount >= 3){
-  //     this.isRunning = false;
-  //     alert("GAME OVER!");
-  //     this.abortGame();
-  //   }
-  //  },
   handleSequenceResult(result){
     if(result == false){
           this.errorCount++
@@ -123,10 +114,12 @@ export default {
     if(this.errorCount >= 3 && !this.hasGameOver){
       this.hasGameOver = true
       this.isRunning = false;
-      this.$alert('GAME OVER!', 'Notification', {
+      this.$alert('GAME OVER!', {
       confirmButtonText: 'OK'
+    }).then(()=>{
+          this.abortGame();
+          this.$router.push('/');
     });      
-    this.abortGame();
     return;
     }
    },
