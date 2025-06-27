@@ -47,11 +47,12 @@ export default {
       gameName: 'Copy Rotation',
       connection: null,
       errorCount: 0,
-      correct: null,
       elapsedSeconds: 0,
       timer: null,
       gameId: 1,
-      sequenceHandler: null
+      sequenceHandler: null,
+      hasGameOver: false
+
     }
   },
   computed: {
@@ -62,8 +63,8 @@ export default {
     }
   },
   methods: {
-     saveGameState(gameName, errorCount, elapsedSeconds) {
-      const state = { errorCount, elapsedSeconds };
+     saveGameState(gameName, elapsedSeconds) {
+      const state = { elapsedSeconds };
       sessionStorage.setItem(`gameState_${gameName}`, JSON.stringify(state));
     },
     loadGameState(gameName) {
@@ -77,7 +78,6 @@ export default {
     this.elapsedSeconds = null;
     this.isRunning = true;
     this.errorCount = 0;
-    this.correct = null;
     this.timer = setInterval(() => {
         this.elapsedSeconds++
       }, 1000)
@@ -113,7 +113,9 @@ export default {
     } catch (err) {
         console.error("Error aborting game:", err);
     }
+    setTimeout(() => {
     this.$router.push('/');
+  }, 100);
    },
   handleSequenceResult(result){
     if(result == false){
@@ -138,8 +140,9 @@ export default {
       this.errorCount = savedState.errorCount;
       this.elapsedSeconds = savedState.elapsedSeconds;
     }
-    this.sequenceHandler = this.handleSequenceResult;
-    const connection = this.$signalR
+    const connection = this.$signalR;
+    connection.off("sequenceResult", this.sequenceHandler);
+     this.sequenceHandler = this.handleSequenceResult;
     connection.on("sequenceResult",this.sequenceHandler);
   },
   beforeDestroy() {
@@ -147,11 +150,8 @@ export default {
   connection.off("sequenceResult", this.sequenceHandler);
 },
   watch: {
-    errorCount(newVal) {
-      this.saveGameState(this.gameName, newVal, this.elapsedSeconds);
-    },
     elapsedSeconds(newVal) {
-      this.saveGameState(this.gameName, this.errorCount, newVal);
+      this.saveGameState(this.gameName, newVal);
     },
   },
   

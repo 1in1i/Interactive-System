@@ -69,11 +69,12 @@ export default {
       brokenheartIcon: '../public/icon/heart2.png',
       gameName: 'Count Notes',
       errorCount: 0,
-      correct: null,
       elapsedSeconds: 0,
       timer: null,
       gameId: 5,
-      sequenceHandler: null
+      sequenceHandler: null,
+      hasGameOver: false
+
     }
   },
   computed: {
@@ -84,17 +85,17 @@ export default {
     }
   },
   methods: {
-    // saveGameState(gameName, errorCount, elapsedSeconds) {
-    //   const state = { errorCount, elapsedSeconds };
-    //   sessionStorage.setItem(`gameState_${gameName}`, JSON.stringify(state));
-    // },
-    // loadGameState(gameName) {
-    //   const stateStr = sessionStorage.getItem(`gameState_${gameName}`);
-    //   if (stateStr) {
-    //     return JSON.parse(stateStr);
-    //   }
-    //   return null;
-    // },
+    saveGameState(gameName, elapsedSeconds) {
+      const state = { elapsedSeconds };
+      sessionStorage.setItem(`gameState_${gameName}`, JSON.stringify(state));
+    },
+    loadGameState(gameName) {
+      const stateStr = sessionStorage.getItem(`gameState_${gameName}`);
+      if (stateStr) {
+        return JSON.parse(stateStr);
+      }
+      return null;
+    },
      playNote(note) {
       const noteFrequencies = {
     'do': 261.63,
@@ -128,7 +129,6 @@ export default {
     this.elapsedSeconds = null;
     this.isRunning = true;
     this.errorCount = 0;
-    this.correct = null;
     this.timer = setInterval(() => {
         this.elapsedSeconds++
       }, 1000)
@@ -164,18 +164,12 @@ export default {
     } catch (err) {
         console.error("Error aborting game:", err);
     }
+    setTimeout(() => {
     this.$router.push('/');
+  }, 100);
    },
-  //  handleDataUpdated(status, mistakes){
-  //   this.errorCount = mistakes;
-  //   this.status = status;
-  //   if(this.errorCount >= 3){
-  //     this.isRunning = false;
-  //     alert("GAME OVER!");
-  //     this.abortGame();
-  //   }
-  //  },
     handleSequenceResult(result){
+      console.log(result,'result');
     if(result == false){
           this.errorCount++
     }
@@ -228,27 +222,24 @@ export default {
   },
   },
   async mounted() {
-    // const savedState = this.loadGameState(this.gameName);
-    // if (savedState) {
-    //   this.errorCount = savedState.errorCount;
-    //   this.elapsedSeconds = savedState.elapsedSeconds;
-    // }
+    const savedState = this.loadGameState(this.gameName);
+    if (savedState) {
+      this.elapsedSeconds = savedState.elapsedSeconds;
+    }
+    const connection = this.$signalR;
+    connection.off("sequenceResult", this.sequenceHandler);
      this.sequenceHandler = this.handleSequenceResult;
-    const connection = this.$signalR
     connection.on("sequenceResult",this.sequenceHandler);
   },
   beforeDestroy() {
   const connection = this.$signalR;
   connection.off("sequenceResult", this.sequenceHandler);
 },
-  //  watch: {
-  //   errorCount(newVal) {
-  //     this.saveGameState(this.gameName, newVal, this.elapsedSeconds);
-  //   },
-  //   elapsedSeconds(newVal) {
-  //     this.saveGameState(this.gameName, this.errorCount, newVal);
-  //   },
-  // },
+   watch: {
+    elapsedSeconds(newVal) {
+      this.saveGameState(this.gameName, newVal);
+    }
+  },
 }
 </script>
 <style scoped>

@@ -71,11 +71,11 @@ export default {
       gameName: 'Replicate Number',
       inputSequence: '',
       errorCount: 0,
-      correct: null,
       elapsedSeconds: 0,
       timer: null,
       gameId: 3,
-      sequenceHandler: null
+      sequenceHandler: null,
+      hasGameOver: false
 
     }
   },
@@ -87,8 +87,8 @@ export default {
     }
   },
   methods: {
-    saveGameState(gameName, errorCount, elapsedSeconds) {
-      const state = { errorCount, elapsedSeconds };
+    saveGameState(gameName, elapsedSeconds) {
+      const state = { elapsedSeconds };
       sessionStorage.setItem(`gameState_${gameName}`, JSON.stringify(state));
     },
     loadGameState(gameName) {
@@ -105,7 +105,6 @@ export default {
     this.elapsedSeconds = null;
     this.isRunning = true;
     this.errorCount = 0;
-    this.correct = null;
     this.timer = setInterval(() => {
         this.elapsedSeconds++
       }, 1000)
@@ -140,7 +139,9 @@ export default {
     } catch (err) {
         console.error("Error aborting game:", err);
     }
+    setTimeout(() => {
     this.$router.push('/');
+  }, 100);
    },
     async submitSequence(gameId, sequenceArray) {
     try {
@@ -178,6 +179,7 @@ export default {
     this.inputSequence = '';
   },
    handleSequenceResult(result){
+    console.log(result,'result')
     if(result == false){
           this.errorCount++
     }
@@ -197,11 +199,11 @@ export default {
   async mounted() {
     const savedState = this.loadGameState(this.gameName);
     if (savedState) {
-      this.errorCount = savedState.errorCount;
       this.elapsedSeconds = savedState.elapsedSeconds;
     }
+     const connection = this.$signalR;
+    connection.off("sequenceResult", this.sequenceHandler);
      this.sequenceHandler = this.handleSequenceResult;
-    const connection = this.$signalR
     connection.on("sequenceResult",this.sequenceHandler);
   },
   beforeDestroy() {
@@ -209,11 +211,8 @@ export default {
   connection.off("sequenceResult", this.sequenceHandler);
 },
    watch: {
-    errorCount(newVal) {
-      this.saveGameState(this.gameName, newVal, this.elapsedSeconds);
-    },
     elapsedSeconds(newVal) {
-      this.saveGameState(this.gameName, this.errorCount, newVal);
+      this.saveGameState(this.gameName, newVal);
     },
   },
 }
