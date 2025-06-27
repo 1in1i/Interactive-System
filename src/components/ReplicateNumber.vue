@@ -143,6 +143,7 @@ export default {
     } catch (err) {
         console.error("Error aborting game:", err);
     }
+    this.$router.push('/');
    },
     async submitSequence(gameId, sequenceArray) {
     try {
@@ -190,7 +191,7 @@ export default {
       confirmButtonText: 'OK'
     }).then(()=>{
           this.abortGame();
-          this.$router.push('/');
+          // this.$router.push('/');
     });
       return;
     }

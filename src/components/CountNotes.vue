@@ -165,6 +165,7 @@ export default {
     } catch (err) {
         console.error("Error aborting game:", err);
     }
+    this.$router.push('/');
    },
   //  handleDataUpdated(status, mistakes){
   //   this.errorCount = mistakes;
@@ -186,7 +187,7 @@ export default {
       confirmButtonText: 'OK'
     }).then(()=>{
           this.abortGame();
-          this.$router.push('/');
+          // this.$router.push('/');
     });      
       return;
     }

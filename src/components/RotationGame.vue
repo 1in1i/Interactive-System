@@ -113,6 +113,7 @@ export default {
     } catch (err) {
         console.error("Error aborting game:", err);
     }
+    this.$router.push('/');
    },
   handleSequenceResult(result){
     if(result == false){
@@ -125,7 +126,7 @@ export default {
       confirmButtonText: 'OK'
     }).then(()=>{
           this.abortGame();
-          this.$router.push('/');
+          // this.$router.push('/');
     });      
     return;
     }
