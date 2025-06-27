@@ -51,7 +51,7 @@
         <el-button class="button"
         :type="isRunning ? 'danger' : 'success'"
         round
-        @click="isRunning? abortGame() : startGame(this.gameId)"        
+        @click="isRunning? abortGame(this.gameId) : startGame(this.gameId)"        
       >
         {{ isRunning ? 'Abort' : 'Start' }}
       </el-button>
@@ -72,7 +72,7 @@ export default {
       correct: null,
       elapsedSeconds: 0,
       timer: null,
-      gameId: 4,
+      gameId: 5,
       sequenceHandler: null
 
     }
@@ -147,16 +147,23 @@ export default {
         console.error("Error starting game:", err);
     }
    },
-   async abortGame(){
+   async abortGame(gameId){
     this.isRunning = false;
      if (this.timer) {
         clearInterval(this.timer)
         this.timer = null
       };
-    try{
-      await this.$signalR.invoke("abortGame");//abortGame
-    }catch(err){
-      console.log("failed connection.")
+    try {
+        const response = await fetch(`/api/game/${gameId}/quit`, {
+            method: "POST"
+        });
+        if (response.ok) {
+            console.log("Game aborted successfully.");
+        } else {
+            console.error("Failed to abort game.");
+        }
+    } catch (err) {
+        console.error("Error aborting game:", err);
     }
    },
   //  handleDataUpdated(status, mistakes){
