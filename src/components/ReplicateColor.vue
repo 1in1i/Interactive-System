@@ -68,7 +68,7 @@ export default {
       remainingLives : 2,
       heartIcon : '../public/icon/heart1.png',
       brokenheartIcon: '../public/icon/heart2.png',
-      gameName: 'Replicate Number',
+      gameName: 'Replicate Color',
       inputSequence: '',
       errorCount: 0,
       elapsedSeconds: 0,
