@@ -68,13 +68,12 @@ export default {
       heartIcon : '../public/icon/heart1.png',
       brokenheartIcon: '../public/icon/heart2.png',
       gameName: 'Count Notes',
-       errorCount: 0,
+      errorCount: 0,
       correct: null,
       elapsedSeconds: 0,
       timer: null,
       gameId: 5,
       sequenceHandler: null
-
     }
   },
   computed: {
@@ -85,17 +84,17 @@ export default {
     }
   },
   methods: {
-    saveGameState(gameName, errorCount, elapsedSeconds) {
-      const state = { errorCount, elapsedSeconds };
-      sessionStorage.setItem(`gameState_${gameName}`, JSON.stringify(state));
-    },
-    loadGameState(gameName) {
-      const stateStr = sessionStorage.getItem(`gameState_${gameName}`);
-      if (stateStr) {
-        return JSON.parse(stateStr);
-      }
-      return null;
-    },
+    // saveGameState(gameName, errorCount, elapsedSeconds) {
+    //   const state = { errorCount, elapsedSeconds };
+    //   sessionStorage.setItem(`gameState_${gameName}`, JSON.stringify(state));
+    // },
+    // loadGameState(gameName) {
+    //   const stateStr = sessionStorage.getItem(`gameState_${gameName}`);
+    //   if (stateStr) {
+    //     return JSON.parse(stateStr);
+    //   }
+    //   return null;
+    // },
      playNote(note) {
       const noteFrequencies = {
     'do': 261.63,
@@ -229,11 +228,11 @@ export default {
   },
   },
   async mounted() {
-    const savedState = this.loadGameState(this.gameName);
-    if (savedState) {
-      this.errorCount = savedState.errorCount;
-      this.elapsedSeconds = savedState.elapsedSeconds;
-    }
+    // const savedState = this.loadGameState(this.gameName);
+    // if (savedState) {
+    //   this.errorCount = savedState.errorCount;
+    //   this.elapsedSeconds = savedState.elapsedSeconds;
+    // }
      this.sequenceHandler = this.handleSequenceResult;
     const connection = this.$signalR
     connection.on("sequenceResult",this.sequenceHandler);
@@ -242,14 +241,14 @@ export default {
   const connection = this.$signalR;
   connection.off("sequenceResult", this.sequenceHandler);
 },
-   watch: {
-    errorCount(newVal) {
-      this.saveGameState(this.gameName, newVal, this.elapsedSeconds);
-    },
-    elapsedSeconds(newVal) {
-      this.saveGameState(this.gameName, this.errorCount, newVal);
-    },
-  },
+  //  watch: {
+  //   errorCount(newVal) {
+  //     this.saveGameState(this.gameName, newVal, this.elapsedSeconds);
+  //   },
+  //   elapsedSeconds(newVal) {
+  //     this.saveGameState(this.gameName, this.errorCount, newVal);
+  //   },
+  // },
 }
 </script>
 <style scoped>
