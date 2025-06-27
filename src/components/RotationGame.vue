@@ -137,7 +137,6 @@ export default {
    async mounted() {
     const savedState = this.loadGameState(this.gameName);
     if (savedState) {
-      this.errorCount = savedState.errorCount;
       this.elapsedSeconds = savedState.elapsedSeconds;
     }
     const connection = this.$signalR;
